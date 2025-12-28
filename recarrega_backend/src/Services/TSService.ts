@@ -12,7 +12,7 @@ class TSService {
             return TS;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(errorMessage);
+            throw new Error(`Error creating TS: ${errorMessage}`);
         }
     }
 
@@ -46,7 +46,23 @@ class TSService {
             return updatedTS;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(errorMessage);
+            throw new Error(`Error updating TS: ${errorMessage}`);
+        }
+    }
+
+    static async deleteTS(TSId: number) {
+        try {
+            // Check if TS exists
+            const TS = await TransportationService.findOne({ where: { id: TSId, isDeleted: false } });
+            if (!TS) {
+                throw new Error("TS not found");
+            }
+
+            // 'Delete' TS: soft delete
+            await TS.update({ isDeleted: true });
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
+            throw new Error(`Error deleting TS: ${errorMessage}`);
         }
     }
 
