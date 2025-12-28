@@ -1,0 +1,69 @@
+import TransportationService from "../Models/TSModel.js";
+
+class TSService {
+    // CRUD
+    static async createTS(name: string, fare: number): Promise<TransportationService | undefined> {
+        try {
+            const TS = await TransportationService.create({
+                name: name,
+                fare: fare
+            });
+
+            return TS;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
+            throw new Error(errorMessage);
+        }
+    }
+
+    static async updateTS(TSId: number, name: string | undefined, fare: number | undefined) {
+        try {
+            // Check if the TS exists
+            const TS = await TransportationService.findByPk(TSId);
+            if (!TS) {
+                throw new Error("TS not found");
+            }
+
+            // Check if any attributes were provided
+            if (!(name || fare)) {
+                throw new Error("At least one attribute must be provided")
+            }
+            
+            let updateData: Record<string, any> = {};
+
+            if (name) {
+                updateData.name = name;
+            } 
+            if (fare) {
+                updateData.fare = fare;
+            }
+            
+            // Update TS
+            await TS.update(updateData);
+            
+            // Fetch updated TS
+            const updatedTS = await TransportationService.findByPk(TSId);
+            return updatedTS;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
+            throw new Error(errorMessage);
+        }
+    }
+
+    // 'Find by' functions
+    static async findTSByPk(TSId: number) {
+        try {
+            const TS = TransportationService.findByPk(TSId);
+            if (!TS) {
+                throw new Error("TS not found")
+            }
+
+            return TS;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
+            throw new Error(`Error fetching task: ${errorMessage}`);
+        }
+    }
+}
+
+export default TSService;
