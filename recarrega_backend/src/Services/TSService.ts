@@ -15,7 +15,6 @@ class TSService {
                 name: name,
                 fare: fare
             });
-
             return TS;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
@@ -23,7 +22,7 @@ class TSService {
         }
     }
 
-    static async updateTS(TSId: number, name: string | undefined, fare: number | undefined) {
+    static async updateTS(TSId: number, name: string | undefined, fare: number | undefined): Promise<TransportationService | null> {
         try {
             // Check if the TS exists
             const TS = await TransportationService.findByPk(TSId);
@@ -57,7 +56,7 @@ class TSService {
         }
     }
 
-    static async deleteTS(TSId: number) {
+    static async deleteTS(TSId: number): Promise<void> {
         try {
             // Check if TS exists
             const TS = await TransportationService.findOne({ where: { id: TSId, isDeleted: false } });
@@ -74,9 +73,9 @@ class TSService {
     }
 
     // 'Find by' functions
-    static async findTSByPk(TSId: number) {
+    static async findTSByPk(TSId: number): Promise<TransportationService> {
         try {
-            const TS = TransportationService.findByPk(TSId);
+            const TS = await TransportationService.findByPk(TSId);
             if (!TS) {
                 throw new Error("TS not found")
             }
