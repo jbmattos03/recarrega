@@ -6,6 +6,7 @@ class Card extends Model {
     public id!: number;
     public name!: string;
     public balance!: number;
+    public calculatedBalance!: number;
     public TSId!: number; // Foreign key
     public userId!: number;
     public isDeleted!: boolean;
@@ -17,7 +18,7 @@ class Card extends Model {
     public updatedAt!: Date;
 
     static associate(models: any) {
-        this.hasOne(models.TransportationService, {
+        this.belongsTo(models.TransportationService, {
             foreignKey: {
                 name: "TSId",
                 allowNull: false, // Card must have a TS associated with it
@@ -52,6 +53,10 @@ Card.init({
     balance: {
         type: DataTypes.FLOAT,
         allowNull: false,
+    },
+    calculatedBalance: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
     },
     TSId: {
         type: DataTypes.INTEGER,

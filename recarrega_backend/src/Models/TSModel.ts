@@ -26,7 +26,7 @@ class TransportationService extends Model {
         });
 
 
-        this.belongsTo(models.Card, {
+        this.hasMany(models.Card, {
             foreignKey: {
                 name: "tsId",
                 allowNull: true, // TS may not have a card associated with it
