@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 
 class UserService {
     // CRUD
-    static async createUser(name: string, email: string, password: string) {
+    static async createUser(name: string, email: string, password: string): Promise<User> {
         try {
             // Check if email is already being used
             const existingUser = await User.findOne({ where: { email: email, isDeleted: false } });
@@ -27,7 +27,7 @@ class UserService {
         }
     }
 
-    static async updateUser(userId: number, name: string | undefined, email: string | undefined) {
+    static async updateUser(userId: number, name: string | undefined, email: string | undefined): Promise<User | null> {
         try {
             // Check if user exists
             const user = await User.findOne({ where: { id: userId, isDeleted: false } });
@@ -40,7 +40,7 @@ class UserService {
                 throw new Error("At least one attribute must be provided")
             }
 
-            const updateData: Record<string, any> = {};
+            let updateData: Record<string, any> = {};
 
             if (name) {
                 updateData.name = name;
@@ -61,7 +61,7 @@ class UserService {
         }
     }
 
-    static async deleteUser(userId: number) {
+    static async deleteUser(userId: number): Promise<void> {
         try {
             const user = await User.findOne({ where: { id: userId, isDeleted: false } });
             if (!user) {
@@ -77,7 +77,7 @@ class UserService {
     }
 
     // 'Find by' functions
-    static async findUserByPk(userId: number) {
+    static async findUserByPk(userId: number): Promise<User> {
         try {
             const user = await User.findOne({ where: { id: userId, isDeleted: false } });
             if (!user) {
@@ -91,7 +91,7 @@ class UserService {
         }
     }
 
-    static async findUserByEmail(email: string) {
+    static async findUserByEmail(email: string): Promise<User> {
         try {
             const user = await User.findOne({ where: { email: email, isDeleted: false } });
             if (!user) {
