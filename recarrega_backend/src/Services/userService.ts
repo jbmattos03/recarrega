@@ -1,5 +1,4 @@
 import User from "../Models/userModel.js"
-import TSToUser from "../Models/TSToUserModel.js";
 import bcrypt from "bcrypt";
 
 class UserService {
@@ -74,15 +73,6 @@ class UserService {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
             throw new Error(`Error deleting user: ${errorMessage}`);
-        }
-    }
-
-    // TSToUser functions
-    static async addTS(TSName: string) {
-        try {
-            
-        } catch (error) {
-
         }
     }
 
