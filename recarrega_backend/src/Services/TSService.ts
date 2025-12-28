@@ -4,6 +4,13 @@ class TSService {
     // CRUD
     static async createTS(name: string, fare: number): Promise<TransportationService | undefined> {
         try {
+            // Check if a TS with the same name already exists
+            const existingTS = await TransportationService.findOne({ where: { name: name, isDeleted: false } });
+            if (existingTS) {
+                throw new Error("TS name already in use")
+            }
+
+            // Creating user
             const TS = await TransportationService.create({
                 name: name,
                 fare: fare
