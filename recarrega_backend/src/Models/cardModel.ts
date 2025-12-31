@@ -1,5 +1,5 @@
 import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../Database/database.js";
+import { sequelize } from "../Database/database";
 
 class Card extends Model {
     // MODEL SPECIFIC ATTRIBUTES
