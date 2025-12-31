@@ -1,5 +1,5 @@
 import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../Database/database.js"
+import { sequelize } from "../Database/database"
 
 class User extends Model {
     // MODEL SPECIFIC ATTRIBUTES
@@ -7,6 +7,7 @@ class User extends Model {
     public name!: string;
     public email!: string;
     public password!: string;
+    public isAdmin!: boolean;
     public isDeleted!: boolean;
 
     // TIMESTAMPS
@@ -55,6 +56,11 @@ User.init({
     password: {
         type: DataTypes.STRING,
         allowNull: false,
+    },
+    isAdmin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
     },
     isDeleted: {
         type: DataTypes.BOOLEAN,
