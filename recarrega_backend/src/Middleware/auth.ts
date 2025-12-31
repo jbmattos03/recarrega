@@ -1,6 +1,7 @@
-import jwt from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
-import logger from "../Utils/logger.js"
+import logger from "../Utils/logger";
+import type { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -16,7 +17,8 @@ function auth(req: Request, res: Response, next: NextFunction): Response | undef
         }
 
         // Check if token is present in Authorization header
-        const token = req.header("Authorization")?.replace("Bearer", "");
+        const token = req.header("Authorization")?.replace("Bearer ", "");
+        logger.debug(`Token: ${token}`);
         if (!token) {
             // If token is missing, return a 401 status code - Unauthorized
             logger.error("Authentication token is missing or invalid");
@@ -26,18 +28,28 @@ function auth(req: Request, res: Response, next: NextFunction): Response | undef
 
         // Check if token is valid
         const decodedUser = jwt.verify(token, jwt_secret);
+        logger.debug(`Decoded user: ${JSON.stringify(decodedUser)}`);
 
         // Add decoded user to req.user
-        req.user = decodedUser;
+        // This is a workaround for error TS2339
+        // https://stackoverflow.com/questions/38324949/error-ts2339-property-x-does-not-exist-on-type-y
+        const newReq: any = req; 
+        newReq.user = decodedUser as JwtPayload;
 
         // Call next function
         next();
     } catch (error) {
         // Check if error is an instance of Error
-        const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
+        if (error instanceof JsonWebTokenError) {
+            logger.error(`Authentication error: ${error.message}`);
+            return res.status(401).json({ message: "Invalid or expired token" });
+        } else if (error instanceof Error) {
+            logger.error(`Error: ${error.message}`);
+            return res.status(500).json({ error: "Internal server error" });
+        }
 
-        logger.error(`Authentication error: ${errorMessage}`);
-        return res.status(401).json({ message: "Invalid or expired token" });
+
+        
     }
 }
 
