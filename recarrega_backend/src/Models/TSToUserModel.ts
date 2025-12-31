@@ -1,5 +1,5 @@
 import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../Database/database.js";
+import { sequelize } from "../Database/database";
 
 class TSToUser extends Model {
     // MODEL SPECIFIC ATTRIBUTES
@@ -42,10 +42,12 @@ class TSToUser extends Model {
 TSToUser.init({
     userId: {
         type: DataTypes.INTEGER,
+        primaryKey: true,
         allowNull: false,
     },
     TSId: {
         type: DataTypes.INTEGER,
+        primaryKey: true,
         allowNull: false,
     },
     timesUsedADay: {
