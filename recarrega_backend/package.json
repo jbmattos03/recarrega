@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Um app para te lembrar de recarregar seus cartões de transporte",
   "license": "ISC",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "npx nodemon --watch src --ext ts --exec ts-node src/index.ts",
-    "compile": "npx tsc"
+    "compile": "npx tsc",
+    "start": "node ./dist/backend/index.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
