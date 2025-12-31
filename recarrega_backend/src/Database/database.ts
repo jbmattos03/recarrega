@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize";
 import mysql2 from "mysql2/promise";
-import logger from "../Utils/logger.js";
+import logger from "../Utils/logger";
 import dotenv from "dotenv";
 dotenv.config();
 
