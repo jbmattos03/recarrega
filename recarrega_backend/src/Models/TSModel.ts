@@ -1,10 +1,11 @@
 import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../Database/database.js";
+import { sequelize } from "../Database/database";
 
 class TransportationService extends Model {
     // MODEL SPECIFIC ATTRIBUTES
     public id!: number;
     public name!: string;
+    public city!: string;
     public fare!: number;
     public isDeleted!: boolean;
 
@@ -45,6 +46,10 @@ TransportationService.init({
         autoIncrement: true,
     },
     name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    city: {
         type: DataTypes.STRING,
         allowNull: false,
     },
