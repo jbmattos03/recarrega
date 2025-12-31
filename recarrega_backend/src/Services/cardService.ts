@@ -1,13 +1,23 @@
-import Card from "../Models/cardModel.js"
+import Card from "../Models/cardModel"
+import TSService from "./TSService";
+import TSToUserService from "./TSToUserService";
 
 class CardService {
     // CRUD
     static async createCard(name: string, balance: number, TSId: number, userId: number): Promise<Card> {
         try {
             // Check if card with the same name, TSId and userId already exists
-            const existingCard = await Card.findOne({ where: { name: name, TSId: TSId, userId: userId, isDeleted: false } });
+            const existingCard = await Card.findOne({ 
+                where: {
+                    name: name,
+                    TSId: TSId,
+                    userId: userId,
+                    isDeleted: false   
+            }});
             if (existingCard) {
-                throw new Error(`Card name already in use for TSId ${TSId} and userId ${userId}`);
+                const err = new Error(`Card name already in use for TSId ${TSId} and userId ${userId}`);
+                err.name = "CardExistsError";
+                throw err;
             }
 
             // Create card
@@ -20,8 +30,17 @@ class CardService {
             });
             return card;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error creating card: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error creating card: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
@@ -30,12 +49,16 @@ class CardService {
             // Check if card exists
             const card = await Card.findOne({ where: { id: cardId, isDeleted: false } });
             if (!card) {
-                throw new Error("Card not found");
+                const err = new Error("Card not found");
+                err.name = "CardNotFoundError";
+                throw err;
             }
 
             // Check if at least one attribute has been provided
             if (!(name || balance)) {
-                throw new Error("At least one attribute must be provided");
+                const err = new Error("At least one attribute must be provided");
+                err.name = "MissingAttributesError";
+                throw err;
             }
 
             let updateData: Record<string, any> = {};
@@ -54,8 +77,17 @@ class CardService {
             const updatedCard = await Card.findOne({ where: { id: cardId, isDeleted: false } });
             return updatedCard;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error updating card: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error updating card: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
@@ -63,43 +95,125 @@ class CardService {
         try {
             const card = await Card.findOne({ where: { id: cardId, isDeleted: false } });
             if (!card) {
-                throw new Error("Card not found");
+                const err = new Error("Card not found");
+                err.name = "CardNotFoundError";
+                throw err;
             }
 
             // 'Delete' card: soft delete
             card.update({ isDeleted: true });
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error deleting card: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error deleting card: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
+        }
+    }
+
+    // Calculate new balance
+    static async calculateBalance(cardId: number): Promise<number | undefined> {
+        try {
+            // Getting card
+            const card = await Card.findByPk(cardId);
+            if (!card) {
+                const err = new Error("Card not found");
+                err.name = "CardNotFoundError";
+                throw err;
+            }
+
+            // Getting TSId and userId from card
+            const TSId = card.TSId;
+            const userId = card.userId;
+
+            // Getting TUAD and DUAM from TSToUser
+            const TSU = await TSToUserService.findTSToUserByTSIdAndUserId(TSId, userId);
+
+            const TUAD = TSU.timesUsedADay;
+
+            // Getting TS fare from TransportationService
+            const TS = await TSService.findTSByPk(TSId);
+
+            const fare = TS.fare;
+
+            // Updating calculatedBalance
+            let newBalance = card.calculatedBalance - (TUAD * fare);
+            await card.update({
+                calculatedBalance: newBalance,
+            });
+
+            // Returning calculatedBalance
+            const updatedCard = await Card.findOne({ where: { id: cardId, isDeleted: false } });
+            return updatedCard?.calculatedBalance;
+        } catch (error) {
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error calculating card balance: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
     // 'Find by' functions
     static async findCardByPk(cardId: number): Promise<Card> {
         try {
-            const card = await Card.findOne({ where: { id: cardId, idDeleted: false } });
+            const card = await Card.findOne({ where: { id: cardId, isDeleted: false } });
             if (!card) {
-                throw new Error("Card not found");
+                const err = new Error("Card not found");
+                err.name = "CardNotFoundError";
+                throw err;
             }
 
             return card;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error fetching card: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error fetching card: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
     static async findAllCardsByUser(userId: number): Promise<Card[]> {
         try {
             const cards = await Card.findAll({ where: { userId: userId, isDeleted: false } });
-            if (!cards) {
-                throw new Error(`No cards found for user id ${userId}`);
+            if (cards.length === 0) {
+                const err = new Error(`No cards found for user id ${userId}`);
+                err.name = "CardNotFoundError";
+                throw err;
             }
 
             return cards;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error fetching cards for user id ${userId}: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error fetching card list: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 }
