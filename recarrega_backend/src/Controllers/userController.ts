@@ -38,6 +38,12 @@ class UserController {
                         return res.status(404).json({ error: error.name });
                     case "MissingAttributesError":
                         return res.status(400).json({ error: error.name});
+                    case "InvalidCredentialsError":
+                        return res.status(401).json({ error: error.name });
+                    case "InvalidPasswordError":
+                        return res.status(400).json({ error: error.name });
+                    case "ResetTokenInvalidError":
+                        return res.status(400).json({ error: error.name });
                     default:
                         return res.status(500).json({ error: "Internal server error" });
                 }
@@ -99,6 +105,12 @@ class UserController {
                         return res.status(404).json({ error: error.name });
                     case "MissingAttributesError":
                         return res.status(400).json({ error: error.name});
+                    case "InvalidCredentialsError":
+                        return res.status(401).json({ error: error.name });
+                    case "InvalidPasswordError":
+                        return res.status(400).json({ error: error.name });
+                    case "ResetTokenInvalidError":
+                        return res.status(400).json({ error: error.name });
                     default:
                         return res.status(500).json({ error: "Internal server error" });
                 }
@@ -150,6 +162,12 @@ class UserController {
                         return res.status(404).json({ error: error.name });
                     case "MissingAttributesError":
                         return res.status(400).json({ error: error.name});
+                    case "InvalidCredentialsError":
+                        return res.status(401).json({ error: error.name });
+                    case "InvalidPasswordError":
+                        return res.status(400).json({ error: error.name });
+                    case "ResetTokenInvalidError":
+                        return res.status(400).json({ error: error.name });
                     default:
                         return res.status(500).json({ error: "Internal server error" });
                 }
@@ -165,7 +183,7 @@ class UserController {
             const { email, password } = req.body;
             logger.info(`Logging user with email ${email} in`);
 
-            logger.debug(`Calling UserService with ${email} and ${password}`);
+            logger.debug(`Calling UserService with ${email}`);
             const token = await UserService.loginUser(email, password);
             logger.info("User logged in successfully");
 
@@ -188,6 +206,10 @@ class UserController {
                         return res.status(400).json({ error: error.name});
                     case "InvalidCredentialsError":
                         return res.status(401).json({ error: error.name });
+                    case "InvalidPasswordError":
+                        return res.status(400).json({ error: error.name });
+                    case "ResetTokenInvalidError":
+                        return res.status(400).json({ error: error.name });
                     default:
                         return res.status(500).json({ error: "Internal server error" });
                 }
@@ -370,12 +392,16 @@ class UserController {
                         return res.status(400).json({ error: error.name});
                     case "InvalidCredentialsError":
                         return res.status(401).json({ error: error.name });
+                    case "InvalidPasswordError":
+                        return res.status(400).json({ error: error.name });
+                    case "ResetTokenInvalidError":
+                        return res.status(400).json({ error: error.name });
                     default:
                         return res.status(500).json({ error: "Internal server error" });
                 }
             } else {
                 logger.error("Something went fantastically wrong. Good luck");
-                res.status(500).json({ error: "Internal server error" });
+                return res.status(500).json({ error: "Internal server error" });
             }
         }
     }
