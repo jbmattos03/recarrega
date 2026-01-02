@@ -8,6 +8,8 @@ class User extends Model {
     public email!: string;
     public password!: string;
     public isAdmin!: boolean;
+    public resetToken!: string
+    public resetTokenExpiration!: Date
     public isDeleted!: boolean;
 
     // TIMESTAMPS
@@ -61,6 +63,16 @@ User.init({
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
+    },
+    resetToken: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: null,
+    },
+    resetTokenExpiration: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
     },
     isDeleted: {
         type: DataTypes.BOOLEAN,

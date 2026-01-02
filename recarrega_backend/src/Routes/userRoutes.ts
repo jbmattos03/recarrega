@@ -10,6 +10,8 @@ const userRoutes = (app: any) => {
     // Public routes
     app.post("/auth/register", UserController.createUser);
     app.post("/auth/login", UserController.loginUser);
+    app.post("/request-password-reset", UserController.requestPasswordReset);
+    app.post("/reset-password/:resetToken", UserController.updatePassword);
 }
 
 export default userRoutes;

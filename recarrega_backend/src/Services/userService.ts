@@ -1,6 +1,7 @@
 import User from "../Models/userModel"
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import * as crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config()
 
@@ -28,8 +29,17 @@ class UserService {
             });
             return user;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error creating user: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error creating user: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
@@ -74,8 +84,17 @@ class UserService {
             const updatedUser = await User.findOne({ where: { id: userId, isDeleted: false } });
             return updatedUser;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error updating user: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error updating user: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
@@ -91,8 +110,17 @@ class UserService {
             // 'Delete' user: soft delete
             await user.update({ isDeleted: true });
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error deleting user: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error deleting user: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
@@ -126,8 +154,102 @@ class UserService {
                 throw err;
             }
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error logging user in: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error logging user in: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
+        }
+    }
+
+    // Password reset
+    static async resetPassword(resetToken: string, newPassword: string): Promise<void> {
+        try {
+            const user = await User.findOne({ where: { resetToken: resetToken, isDeleted: false } });
+            if (!user) {
+                const err = new Error("Invalid or expired token");
+                err.name = "ResetTokenInvalidError";
+                throw err;
+            }
+
+            // Hash the new password
+            const hashedNewpassword = await bcrypt.hash(newPassword, 10);
+
+            // Check if new password is the same as old password
+            const match = await bcrypt.compare(newPassword, user.password);
+            if (match) {
+                const err = new Error("New password must not be the same as the old password");
+                err.name = "InvalidPasswordError";
+                throw err;
+            }
+
+            // Check if resetToken is valid
+            if (user.resetTokenExpiration.getDate() < Date.now()) {
+                await user.update({
+                    password: hashedNewpassword,
+                    resetToken: null,
+                    resetTokenExpiration: null,
+                });
+            } else {
+                const err = new Error("Invalid or expired token");
+                err.name = "ResetTokenInvalidError";
+                throw err;
+            }
+        } catch (error) {
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error resetting password: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
+        }
+    }
+
+    static async setPasswordResetToken(userId: number): Promise<User | null> {
+        try {
+            const user = await User.findOne({ where: { id: userId, isDeleted: false } });
+            if (!user) {
+                const err = new Error("User not found");
+                err.name = "UserNotFoundError";
+                throw err;
+            }
+
+            // Create 16-byte hexadecimal token
+            const token = crypto.randomBytes(16).toString("hex");
+            const expiry = Date.now() + 3600000; // Set expiry to 1h from now
+            
+            // Update user
+            await user.update({
+                resetToken: token,
+                resetTokenExpiration: expiry,
+            });
+
+            // Fetch updated user
+            const updatedUser = await User.findOne({ where: { id: userId, isDeleted: false } });
+            return updatedUser;
+        } catch (error) {
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error setting password reset token: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
@@ -143,8 +265,17 @@ class UserService {
 
             return user;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error fetching user: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error fetching user: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
     }
 
@@ -159,9 +290,43 @@ class UserService {
 
             return user;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "An unknown error has occurred";
-            throw new Error(`Error fetching user: ${errorMessage}`);
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error fetching user: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
         }
+    }
+
+    static async findUserByResetToken(resetToken: string): Promise<User> {
+        try {
+            const user = await User.findOne({ where: { resetToken: resetToken, isDeleted: false } });
+            if (!user) {
+                const err = new Error("User not found");
+                err.name = "UserNotFoundError";
+                throw err;
+            }
+
+            return user;
+        } catch (error) {
+            let err: Error;
+
+            if (error instanceof Error) {
+                err = new Error((`Error fetching user: ${error.message}`));
+
+                err.name = error.name ?? "Error";
+            } else {
+                err = new Error("An unknown error has occurred");
+            }
+
+            throw err;
+        } 
     }
 }
 
